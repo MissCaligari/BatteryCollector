@@ -20,10 +20,17 @@ public:
 
 	FORCEINLINE class UBoxComponent* GetWhereToSpawn() const { return WhereToSpawn; };
 
+	UFUNCTION(BlueprintPure, Category = "Spawning")
+	FVector GetRandomPointInVolume();
+	
+protected:
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<class APickup> WhatToSpawn;
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pickup", meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* WhereToSpawn;
 
-	
+	void SpawnPickup();
 	
 };
