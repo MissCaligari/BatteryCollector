@@ -63,6 +63,16 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// End of APawn interface
 
+	UFUNCTION(BlueprintCallable, Category = "Pickup")
+	void CollectPickups();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Power");
+	float InitialPower;
+
+private:
+	UPROPERTY(VisibleAnywhere, Category = "Power")
+	float CharacterPower;
+
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

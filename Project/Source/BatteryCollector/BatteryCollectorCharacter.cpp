@@ -2,6 +2,7 @@
 
 #include "BatteryCollector.h"
 #include "Kismet/HeadMountedDisplayFunctionLibrary.h"
+#include "Pickup.h"
 #include "BatteryCollectorCharacter.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -39,11 +40,15 @@ ABatteryCollectorCharacter::ABatteryCollectorCharacter()
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	CollectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollectionSphere"));
-	CollectionSphere = AttachTo(RootComponent);
+	CollectionSphere->SetupAttachment(RootComponent);
 	CollectionSphere->SetSphereRadius(200.0f);
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+	
+	InitialPower = 2000.f;
+	CharacterPower = InitialPower;
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -55,6 +60,8 @@ void ABatteryCollectorCharacter::SetupPlayerInputComponent(class UInputComponent
 	check(PlayerInputComponent);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+
+	PlayerInputComponent->BindAction("Collect", IE_Pressed, this, &ABatteryCollectorCharacter::CollectPickups);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ABatteryCollectorCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABatteryCollectorCharacter::MoveRight);
@@ -136,5 +143,22 @@ void ABatteryCollectorCharacter::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
+	}
+}
+
+void ABatteryCollectorCharacter::CollectPickups()
+{
+	TArray<AActor*> CollectedActors;
+	CollectionSphere->GetOverlappingActors(CollectedActors);
+
+	for (int32 iCollected = 0; iCollected < CollectedActors.Num(); ++iCollected)
+	{
+		APickup* const TestPickup = Cast<APickup>(CollectedActors[iCollected]);
+
+		if (TestPickup && !TestPickup->IsPendingKill() && TestPickup->IsActive())
+		{
+			TestPickup->WasCollected();
+			TestPickup->SetActive(false);
+		}
 	}
 }
